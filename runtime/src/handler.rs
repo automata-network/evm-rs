@@ -71,7 +71,7 @@ pub trait Handler {
 	/// References:
 	/// * <https://eips.ethereum.org/EIPS/eip-2929>
 	/// * <https://eips.ethereum.org/EIPS/eip-2930>
-	fn is_cold(&self, address: H160, index: Option<H256>) -> bool;
+	fn is_cold(&mut self, address: H160, index: Option<H256>) -> Result<bool, ExitError>;
 
 	/// Set storage value of address at index.
 	fn set_storage(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError>;
@@ -113,6 +113,7 @@ pub trait Handler {
 		context: &Context,
 		opcode: Opcode,
 		stack: &Stack,
+		pc: &Result<usize, ExitReason>,
 	) -> Result<(), ExitError>;
 	/// Handle other unknown external opcodes.
 	fn other(&mut self, opcode: Opcode, _stack: &mut Machine) -> Result<(), ExitError> {

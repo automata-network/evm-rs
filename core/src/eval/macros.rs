@@ -57,6 +57,7 @@ macro_rules! op1_u256_fn {
 	( $machine:expr, $op:path ) => {{
 		pop_u256!($machine, op1);
 		let ret = $op(op1);
+		// glog::debug!(target: "evm", "op1 u256, pop:{:?}, push:{:?}", op1, ret);
 		push_u256!($machine, ret);
 
 		Control::Continue(1)

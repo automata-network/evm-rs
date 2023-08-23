@@ -60,10 +60,7 @@ impl<'config> MemoryStackSubstate<'config> {
 	pub fn deconstruct<B: Backend>(
 		mut self,
 		backend: &B,
-	) -> (
-		impl IntoIterator<Item = Apply<impl IntoIterator<Item = (H256, H256)>>>,
-		impl IntoIterator<Item = Log>,
-	) {
+	) -> (Vec<Apply<BTreeMap<H256, H256>>>, Vec<Log>) {
 		assert!(self.parent.is_none());
 
 		let mut applies = Vec::<Apply<BTreeMap<H256, H256>>>::new();
@@ -302,14 +299,17 @@ impl<'config> MemoryStackSubstate<'config> {
 	}
 
 	pub fn inc_nonce<B: Backend>(&mut self, address: H160, backend: &B) {
+		// glog::debug!(target: "audit", "[audit] inc_nonce(address: {:?})", address);
 		self.account_mut(address, backend).basic.nonce += U256::one();
 	}
 
 	pub fn set_storage(&mut self, address: H160, key: H256, value: H256) {
+		// glog::debug!(target: "audit", "[audit] set_storage(address: {:?}, key: {:?}, value: {:?})", address, key, value);
 		self.storages.insert((address, key), value);
 	}
 
 	pub fn reset_storage<B: Backend>(&mut self, address: H160, backend: &B) {
+		// glog::debug!(target: "audit", "[audit] reset_storage(address: {:?})", address);
 		let mut removing = Vec::new();
 
 		for (oa, ok) in self.storages.keys() {
@@ -334,10 +334,12 @@ impl<'config> MemoryStackSubstate<'config> {
 	}
 
 	pub fn set_deleted(&mut self, address: H160) {
+		// glog::debug!(target: "audit", "[audit] set_deleted(address: {:?})", address);
 		self.deletes.insert(address);
 	}
 
 	pub fn set_code<B: Backend>(&mut self, address: H160, code: Vec<u8>, backend: &B) {
+		// glog::debug!(target: "audit", "[audit] set_code(address: {:?}, code: {:?})", address, "???");
 		self.account_mut(address, backend).code = Some(code);
 	}
 
@@ -346,6 +348,7 @@ impl<'config> MemoryStackSubstate<'config> {
 		transfer: Transfer,
 		backend: &B,
 	) -> Result<(), ExitError> {
+		// glog::debug!(target: "audit", "[audit] transfer(transfer: {:?})", transfer);
 		{
 			let source = self.account_mut(transfer.source, backend);
 			if source.basic.balance < transfer.value {
@@ -385,6 +388,7 @@ impl<'config> MemoryStackSubstate<'config> {
 	}
 
 	pub fn reset_balance<B: Backend>(&mut self, address: H160, backend: &B) {
+		// glog::debug!(target: "audit", "[audit] reset_balance(address: {:?})", address);
 		self.account_mut(address, backend).basic.balance = U256::zero();
 	}
 
@@ -561,12 +565,7 @@ impl<'backend, 'config, B: Backend> MemoryStackState<'backend, 'config, B> {
 	}
 
 	#[must_use]
-	pub fn deconstruct(
-		self,
-	) -> (
-		impl IntoIterator<Item = Apply<impl IntoIterator<Item = (H256, H256)>>>,
-		impl IntoIterator<Item = Log>,
-	) {
+	pub fn deconstruct(self) -> (Vec<Apply<BTreeMap<H256, H256>>>, Vec<Log>) {
 		self.substate.deconstruct(self.backend)
 	}
 

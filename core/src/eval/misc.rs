@@ -127,6 +127,7 @@ pub fn jumpi(state: &mut Machine) -> Control {
 	pop_u256!(state, dest);
 	pop!(state, value);
 
+	// glog::debug!(target: "evm", "jumpi pos={:?}, cond:{:?}", dest, value);
 	if value != H256::zero() {
 		let dest = as_usize_or_fail!(dest, ExitError::InvalidJump);
 		if state.valids.is_valid(dest) {
@@ -158,6 +159,7 @@ pub fn push(state: &mut Machine, n: usize, position: usize) -> Control {
 	let mut val = [0u8; 32];
 	val[(32 - n)..(32 - n + slice.len())].copy_from_slice(slice);
 
+	// glog::debug!(target: "evm", "push: {:?}", slice);
 	push!(state, H256(val));
 	Control::Continue(1 + n)
 }
@@ -182,6 +184,7 @@ pub fn swap(state: &mut Machine, n: usize) -> Control {
 		Ok(value) => value,
 		Err(e) => return Control::Exit(e.into()),
 	};
+	// glog::debug!(target: "evm", "swap {:?} <-> {:?}", val1, val2);
 	match state.stack.set(0, val2) {
 		Ok(()) => (),
 		Err(e) => return Control::Exit(e.into()),

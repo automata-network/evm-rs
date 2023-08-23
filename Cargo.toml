@@ -10,24 +10,26 @@ edition = "2018"
 
 [dependencies]
 auto_impl = "1.0"
-ethereum = { version = "0.14", default-features = false }
-log = { version = "0.4", default-features = false }
-primitive-types = { version = "0.12", default-features = false, features = ["rlp"] }
+ethereum = { version = "0.7.1", default-features = false }
+primitive-types = { version = "0.9", default-features = false, features = ["rlp"] }
 rlp = { version = "0.5", default-features = false }
 sha3 = { version = "0.10", default-features = false }
 
 # Optional dependencies
 environmental = { version = "1.1.2", default-features = false, optional = true }
-scale-codec = { package = "parity-scale-codec", version = "3.2", default-features = false, features = ["derive"], optional = true }
-scale-info = { version = "2.3", default-features = false, features = ["derive"], optional = true }
+scale-codec = { package = "parity-scale-codec", version = "3.1.5", default-features = false, features = ["derive"], optional = true }
+scale-info = { version = "2.1.2", default-features = false, features = ["derive"], optional = true }
 serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
 
 evm-core = { version = "0.37", path = "core", default-features = false }
 evm-gasometer = { version = "0.37", path = "gasometer", default-features = false }
 evm-runtime = { version = "0.37", path = "runtime", default-features = false }
 
+
 [dev-dependencies]
-criterion = "0.4"
+criterion = "0.3"
+rayon-core = "=1.10.0"
+csv = "=1.1.6"
 hex = "0.4"
 
 [[bench]]
@@ -38,7 +40,6 @@ harness = false
 default = ["std"]
 std = [
 	"ethereum/std",
-	"log/std",
 	"primitive-types/std",
 	"rlp/std",
 	"sha3/std",
@@ -50,6 +51,7 @@ std = [
 	"evm-gasometer/std",
 	"evm-runtime/std",
 ]
+tstd = []
 with-codec = [
 	"scale-codec",
 	"scale-info",
@@ -60,7 +62,7 @@ with-codec = [
 ]
 with-serde = [
 	"serde",
-	"primitive-types/serde",
+	"primitive-types/impl-serde",
 	"evm-core/with-serde",
 	"ethereum/with-serde",
 ]
@@ -68,12 +70,4 @@ tracing = [
 	"environmental",
 	"evm-gasometer/tracing",
 	"evm-runtime/tracing",
-]
-
-[workspace]
-members = [
-	"core",
-	"gasometer",
-	"runtime",
-	"fuzzer",
 ]
