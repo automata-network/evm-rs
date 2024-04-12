@@ -98,10 +98,13 @@ impl<'config> StackSubstateMetadata<'config> {
 	}
 
 	pub fn swallow_commit(&mut self, other: Self) -> Result<(), ExitError> {
+		// glog::debug!(target: "evm", "Create,  UsedGas: {:?}, record_stipend({})", self.gasometer.total_used_gas(), other.gasometer.gas());
 		self.gasometer.record_stipend(other.gasometer.gas())?;
+		// glog::debug!(target: "evm", "Create,  UsedGas: {:?}", self.gasometer.total_used_gas());
 		self.gasometer
 			.record_refund(other.gasometer.refunded_gas())?;
 
+		// glog::debug!(target: "evm", "Create,  UsedGas: {:?}", self.gasometer.total_used_gas());
 		if let (Some(mut other_accessed), Some(self_accessed)) =
 			(other.accessed, self.accessed.as_mut())
 		{
@@ -469,7 +472,11 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet>
 		if let Err(e) = self.record_create_transaction_cost(&init_code, &access_list) {
 			return emit_exit!(e.into(), Vec::new());
 		}
+
+		// glog::debug!(target: "evm", "gas: {}", self.state.metadata_mut().gasometer.total_used_gas());
 		self.initialize_with_access_list(access_list);
+
+		// glog::debug!(target: "evm", "gas: {}", self.state.metadata_mut().gasometer.total_used_gas());
 
 		match self.create_inner(
 			caller,
@@ -481,9 +488,11 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet>
 		) {
 			Capture::Exit((s, _, v)) => emit_exit!(s, v),
 			Capture::Trap(rt) => {
+				// glog::debug!(target: "evm", "gas: {}", self.state.metadata_mut().gasometer.total_used_gas());
 				let mut cs = Vec::with_capacity(DEFAULT_CALL_STACK_CAPACITY);
 				cs.push(rt.0);
 				let (s, _, v) = self.execute_with_call_stack(&mut cs);
+				// glog::debug!(target: "evm", "gas: {}", self.state.metadata_mut().gasometer.total_used_gas());
 				emit_exit!(s, v)
 			}
 		}
@@ -1318,8 +1327,13 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet> Handler
 		context: &Context,
 		opcode: Opcode,
 		stack: &Stack,
+		_pc: &Result<usize, ExitReason>,
 	) -> Result<(), ExitError> {
 		// log::trace!(target: "evm", "Running opcode: {:?}, Pre gas-left: {:?}", opcode, gasometer.gas());
+		let _start_gas = self.state.metadata_mut().gasometer.gas();
+		let _total_gas = self.state.metadata_mut().gasometer.total_used_gas();
+		// let mut dyn_gas_cost = None;
+		// let mut dyn_mem_cost = None;
 
 		if let Some(cost) = gasometer::static_opcode_cost(opcode) {
 			self.state.metadata_mut().gasometer.record_cost(cost)?;
@@ -1333,7 +1347,8 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet> Handler
 				self.config,
 				self,
 			)?;
-
+			// dyn_gas_cost = Some(gas_cost.clone());
+			// dyn_mem_cost = memory_cost.clone();
 			let gasometer = &mut self.state.metadata_mut().gasometer;
 			gasometer.record_dynamic_cost(gas_cost, memory_cost)?;
 
@@ -1350,7 +1365,9 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet> Handler
 				StorageTarget::None => (),
 			}
 		}
+		let _end_gas = self.state.metadata_mut().gasometer.gas();
 
+		// glog::debug!(target: "evm", "Running opcode: {:?}, Pre gas-left: {:?}, cost: {:?}, used: {:?}, pc:{:?}", opcode, start_gas, start_gas - end_gas, total_gas, pc);
 		Ok(())
 	}
 

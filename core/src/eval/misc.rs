@@ -135,6 +135,7 @@ pub fn jumpi(state: &mut Machine) -> Control {
 	pop_u256!(state, dest);
 	pop!(state, value);
 
+	// glog::debug!(target: "evm", "jumpi pos={:?}, cond:{:?}", dest, value);
 	if value != H256::zero() {
 		trace_op!("JumpI: {}", dest);
 		let dest = as_usize_or_fail!(dest, ExitError::InvalidJump);
@@ -196,6 +197,7 @@ pub fn swap(state: &mut Machine, n: usize) -> Control {
 		Ok(value) => value,
 		Err(e) => return Control::Exit(e.into()),
 	};
+	// glog::debug!(target: "evm", "swap {:?} <-> {:?}", val1, val2);
 	match state.stack.set(0, val2) {
 		Ok(()) => (),
 		Err(e) => return Control::Exit(e.into()),

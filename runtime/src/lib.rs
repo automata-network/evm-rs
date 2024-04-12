@@ -48,7 +48,7 @@ macro_rules! step {
 				memory: $self.machine.memory()
 			});
 
-			match $handler.pre_validate(&$self.context, opcode, stack) {
+			match $handler.pre_validate(&$self.context, opcode, stack, $self.machine.position()) {
 				Ok(()) => (),
 				Err(e) => {
 					$self.machine.exit(e.clone().into());

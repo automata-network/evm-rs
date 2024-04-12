@@ -219,6 +219,7 @@ impl<'config> Gasometer<'config> {
 		let after_gas = self.gas_limit - all_gas_cost;
 		try_or_fail!(self.inner, self.inner_mut()?.extra_check(cost, after_gas));
 
+		// glog::debug!(target: "evm", "record dynamic cost: {}", gas_cost);
 		self.inner_mut()?.used_gas += gas_cost;
 		self.inner_mut()?.memory_gas = memory_gas;
 		self.inner_mut()?.refunded_gas += gas_refund;
@@ -298,6 +299,9 @@ impl<'config> Gasometer<'config> {
 				cost
 			}
 		};
+
+
+		// glog::debug!(target: "evm_gas", "tx_cost: {:?}, gas_cost: {}", cost, gas_cost);
 
 		event!(RecordTransaction {
 			cost: gas_cost,
