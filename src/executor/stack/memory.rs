@@ -23,6 +23,7 @@ pub struct MemoryStackSubstate<'config> {
 	logs: Vec<Log>,
 	accounts: BTreeMap<H160, MemoryStackAccount>,
 	storages: BTreeMap<(H160, H256), H256>,
+	transient: BTreeMap<(H160, H256), H256>,
 	deletes: BTreeSet<H160>,
 }
 
@@ -34,6 +35,7 @@ impl<'config> MemoryStackSubstate<'config> {
 			logs: Vec::new(),
 			accounts: BTreeMap::new(),
 			storages: BTreeMap::new(),
+			transient: BTreeMap::new(),
 			deletes: BTreeSet::new(),
 		}
 	}
@@ -116,6 +118,7 @@ impl<'config> MemoryStackSubstate<'config> {
 			logs: Vec::new(),
 			accounts: BTreeMap::new(),
 			storages: BTreeMap::new(),
+			transient: BTreeMap::new(),
 			deletes: BTreeSet::new(),
 		};
 		mem::swap(&mut entering, self);
@@ -395,6 +398,14 @@ impl<'config> MemoryStackSubstate<'config> {
 	pub fn touch<B: Backend>(&mut self, address: H160, backend: &B) {
 		self.account_mut(address, backend);
 	}
+
+	pub fn transient_state(&self, address: H160, index: H256) -> H256 {
+		self.transient.get(&(address, index)).cloned().unwrap_or_default()
+	}
+
+	pub fn set_transient_state(&mut self, address: H160, index: H256, value: H256) {
+		self.transient.insert((address, index), value);
+	}
 }
 
 #[derive(Clone, Debug)]
@@ -548,6 +559,14 @@ impl<'backend, 'config, B: Backend> StackState<'config> for MemoryStackState<'ba
 
 	fn touch(&mut self, address: H160) {
 		self.substate.touch(address, self.backend)
+	}
+
+	fn transient_state(&self, address: H160, key: H256) -> H256 {
+		self.substate.transient_state(address, key)
+	}
+
+	fn set_transient_state(&mut self, address: H160, key: H256, value: H256) {
+		self.substate.set_transient_state(address, key, value)
 	}
 }
 

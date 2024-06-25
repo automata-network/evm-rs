@@ -47,6 +47,7 @@ pub struct MemoryAccount {
 	pub balance: U256,
 	/// Full account storage.
 	pub storage: BTreeMap<H256, H256>,
+	pub transient: BTreeMap<H256, H256>,
 	/// Account code.
 	pub code: Vec<u8>,
 }

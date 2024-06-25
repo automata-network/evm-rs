@@ -185,6 +185,10 @@ pub fn sha3_cost(len: U256) -> Result<u64, ExitError> {
 	Ok(gas.as_u64())
 }
 
+pub fn transient_cost(config: &Config) -> u64 {
+	config.gas_storage_read_warm
+}
+
 pub fn sload_cost(is_cold: bool, config: &Config) -> u64 {
 	if config.increase_state_access_gas {
 		if is_cold {

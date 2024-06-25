@@ -289,6 +289,8 @@ pub struct Config {
 	pub has_push0: bool,
 	/// Whether the gasometer is running in estimate mode.
 	pub estimate: bool,
+	pub has_mcopy: bool,
+	pub has_transient_storage: bool,
 }
 
 impl Config {
@@ -343,6 +345,8 @@ impl Config {
 			has_base_fee: false,
 			has_push0: false,
 			estimate: false,
+			has_mcopy: false,
+			has_transient_storage: false,
 		}
 	}
 
@@ -397,6 +401,8 @@ impl Config {
 			has_base_fee: false,
 			has_push0: false,
 			estimate: false,
+			has_mcopy: false,
+			has_transient_storage: false,
 		}
 	}
 
@@ -489,6 +495,8 @@ impl Config {
 			has_base_fee,
 			has_push0,
 			estimate: false,
+			has_mcopy: false,
+			has_transient_storage: false,
 		}
 	}
 }

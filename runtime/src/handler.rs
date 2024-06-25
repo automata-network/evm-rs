@@ -35,6 +35,7 @@ pub trait Handler {
 	fn code(&self, address: H160) -> Vec<u8>;
 	/// Get storage value of address at index.
 	fn storage(&self, address: H160, index: H256) -> H256;
+	fn transient_state(&self, address: H160, index: H256) -> H256;
 	/// Get original storage value of address at index.
 	fn original_storage(&self, address: H160, index: H256) -> H256;
 
@@ -73,6 +74,8 @@ pub trait Handler {
 	/// * <https://eips.ethereum.org/EIPS/eip-2930>
 	fn is_cold(&mut self, address: H160, index: Option<H256>) -> Result<bool, ExitError>;
 
+	/// Set storage value of address at index.
+	fn set_transient_state(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError>;
 	/// Set storage value of address at index.
 	fn set_storage(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError>;
 	/// Create a log owned by address with given topics and data.

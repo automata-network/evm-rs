@@ -255,7 +255,6 @@ impl<'config> Gasometer<'config> {
 			}
 		};
 
-
 		// glog::debug!(target: "evm_gas", "tx_cost: {:?}, gas_cost: {}", cost, gas_cost);
 
 		event!(RecordTransaction {
@@ -541,7 +540,9 @@ pub fn dynamic_opcode_cost<H: Handler>(
 				len: U256::from_big_endian(&stack.peek(3)?[..]),
 			}
 		}
-		Opcode::CALLDATACOPY | Opcode::CODECOPY => GasCost::VeryLowCopy {
+
+		Opcode::MCOPY if !config.has_mcopy => GasCost::Invalid(opcode),
+		Opcode::MCOPY | Opcode::CALLDATACOPY | Opcode::CODECOPY => GasCost::VeryLowCopy {
 			len: U256::from_big_endian(&stack.peek(2)?[..]),
 		},
 		Opcode::EXP => GasCost::Exp {
@@ -554,6 +555,9 @@ pub fn dynamic_opcode_cost<H: Handler>(
 				target_is_cold: handler.is_cold(address, Some(index))?,
 			}
 		}
+
+		Opcode::TLOAD | Opcode::TSTORE if config.has_transient_storage => GasCost::Transient,
+		Opcode::TLOAD | Opcode::TSTORE => GasCost::Invalid(opcode),
 
 		Opcode::DELEGATECALL if config.has_delegate_call => {
 			let target = stack.peek(1)?.into();
@@ -650,10 +654,13 @@ pub fn dynamic_opcode_cost<H: Handler>(
 			len: U256::from_big_endian(&stack.peek(1)?[..]),
 		}),
 
-		Opcode::CODECOPY | Opcode::CALLDATACOPY | Opcode::RETURNDATACOPY => Some(MemoryCost {
-			offset: U256::from_big_endian(&stack.peek(0)?[..]),
-			len: U256::from_big_endian(&stack.peek(2)?[..]),
-		}),
+		Opcode::MCOPY if !config.has_mcopy => None,
+		Opcode::MCOPY | Opcode::CODECOPY | Opcode::CALLDATACOPY | Opcode::RETURNDATACOPY => {
+			Some(MemoryCost {
+				offset: U256::from_big_endian(&stack.peek(0)?[..]),
+				len: U256::from_big_endian(&stack.peek(2)?[..]),
+			})
+		}
 
 		Opcode::EXTCODECOPY => Some(MemoryCost {
 			offset: U256::from_big_endian(&stack.peek(1)?[..]),
@@ -820,6 +827,7 @@ impl<'config> Inner<'config> {
 			GasCost::Create => consts::G_CREATE,
 			GasCost::Create2 { len } => costs::create2_cost(len)?,
 			GasCost::SLoad { target_is_cold } => costs::sload_cost(target_is_cold, self.config),
+			GasCost::Transient => costs::transient_cost(self.config),
 
 			GasCost::Zero => consts::G_ZERO,
 			GasCost::Base => consts::G_BASE,
@@ -999,6 +1007,7 @@ pub enum GasCost {
 		/// True if target has not been previously accessed in this transaction
 		target_is_cold: bool,
 	},
+	Transient,
 }
 
 /// Storage opcode will access. Used for tracking accessed storage (EIP-2929).

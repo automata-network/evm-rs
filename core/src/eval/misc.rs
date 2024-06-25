@@ -87,6 +87,23 @@ pub fn mload(state: &mut Machine) -> Control {
 }
 
 #[inline]
+pub fn mcopy(state: &mut Machine) -> Control {
+	// opMcopy implements the MCOPY opcode (https://eips.ethereum.org/EIPS/eip-5656)
+	pop_u256!(state, dst);
+	pop_u256!(state, src);
+	pop_u256!(state, length);
+
+	try_or_fail!(state.memory.resize_offset(dst, length));
+
+	// These values are checked for overflow during memory expansion calculation
+	// (the memorySize function on the opcode).
+	match state.memory.copy(dst, src, length) {
+		Ok(()) => Control::Continue(1),
+		Err(e) => Control::Exit(e.into()),
+	}
+}
+
+#[inline]
 pub fn mstore(state: &mut Machine) -> Control {
 	pop_u256!(state, index);
 	pop!(state, value);

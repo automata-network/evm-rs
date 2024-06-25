@@ -181,6 +181,33 @@ impl Memory {
 
 		self.set(memory_offset, data, Some(ulen))
 	}
+
+	pub fn copy(&mut self, dst: U256, src: U256, len: U256) -> Result<(), ExitFatal> {
+		if len.is_zero() {
+			return Ok(());
+		}
+		if dst > U256::from(usize::MAX) {
+			return Err(ExitFatal::NotSupported);
+		}
+
+		if let Some(dst_end) = dst.checked_add(len) {
+			if dst_end > U256::from(usize::MAX) {
+				return Err(ExitFatal::NotSupported);
+			}
+			if dst_end.as_usize() > self.data.len() {
+				return Err(ExitFatal::NotSupported);
+			}
+			if let Some(src_end) = src.checked_add(len) {
+				if src_end > U256::from(usize::MAX) {
+				} else {
+					let src = src.as_usize();
+					let src_end = src_end.as_usize();
+					self.data.copy_within(src..src_end, dst.as_usize());
+				}
+			}
+		}
+		Ok(())
+	}
 }
 
 /// Rounds up `x` to the closest multiple of 32. If `x % 32 == 0` then `x` is returned.

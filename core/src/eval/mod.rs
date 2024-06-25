@@ -148,6 +148,10 @@ fn eval_mload(state: &mut Machine, _opcode: Opcode, _position: usize) -> Control
 	self::misc::mload(state)
 }
 
+fn eval_mcopy(state: &mut Machine, _opcode: Opcode, _position: usize) -> Control {
+	self::misc::mcopy(state)
+}
+
 fn eval_mstore(state: &mut Machine, _opcode: Opcode, _position: usize) -> Control {
 	self::misc::mstore(state)
 }
@@ -490,6 +494,7 @@ pub fn eval(state: &mut Machine, opcode: Opcode, position: usize) -> Control {
 		table[Opcode::CALLDATACOPY.as_usize()] = eval_calldatacopy as _;
 		table[Opcode::POP.as_usize()] = eval_pop as _;
 		table[Opcode::MLOAD.as_usize()] = eval_mload as _;
+		table[Opcode::MCOPY.as_usize()] = eval_mcopy as _;
 		table[Opcode::MSTORE.as_usize()] = eval_mstore as _;
 		table[Opcode::MSTORE8.as_usize()] = eval_mstore8 as _;
 		table[Opcode::JUMP.as_usize()] = eval_jump as _;

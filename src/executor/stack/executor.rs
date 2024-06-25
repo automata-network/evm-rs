@@ -217,6 +217,9 @@ pub trait StackState<'config>: Backend {
 	fn reset_balance(&mut self, address: H160);
 	fn touch(&mut self, address: H160);
 
+	fn transient_state(&self, address: H160, index: H256) -> H256;
+	fn set_transient_state(&mut self, address: H160, key: H256, value: H256);
+
 	/// Fetch the code size of an address.
 	/// Provide a default implementation by fetching the code, but
 	/// can be customized to use a more performant approach that don't need to
@@ -1052,6 +1055,10 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet> Handler
 		self.state.storage(address, index)
 	}
 
+	fn transient_state(&self, address: H160, index: H256) -> H256 {
+		self.state.transient_state(address, index)
+	}
+
 	fn original_storage(&self, address: H160, index: H256) -> H256 {
 		self.state
 			.original_storage(address, index)
@@ -1133,6 +1140,11 @@ impl<'config, 'precompiles, S: StackState<'config>, P: PrecompileSet> Handler
 
 	fn set_storage(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError> {
 		self.state.set_storage(address, index, value);
+		Ok(())
+	}
+
+	fn set_transient_state(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError> {
+		self.state.set_transient_state(address, index, value);
 		Ok(())
 	}
 
